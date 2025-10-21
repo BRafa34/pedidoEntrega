@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from functools import wraps
 
-import json
-import folium
+'''import json
+import folium'''
 
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta_muy_segura' # Cambia esto en producción
