@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Inicio{% endblock %}
+{% block content %}
+
+<div class="container-fluid" style="position: absolute;">
+<center>
+        <h4>Pedido No. xxxxxxxxxx</h4>
+        <h6>Tienda: xxxxxxxxxxxxx Contacto: xxxxxxxxxxxxx Teléfono: 99999999</h6>
+        <h6>Dirección: xxxxxxxxxxxxx</h6>
+        <form id="pedidoForm">
+            <table>
+                <tr>
+                    <th>Código</th>
+                    <th>Producto</th>
+                    <th>Precio de Venta</th>
+                    <th>Cantidad</th>
+                    <th>Importe</th>
+                </tr>
+                <tr>
+                    <td><input type="text" name="codigo1" required></td>
+                    <td><input type="text" name="producto1" required></td>
+                    <td><input type="number" name="precio1" step="0.01" required></td>
+                    <td><input type="number" name="cantidad1" required></td>
+                    <td><input type="number" name="importe1" readonly></td>
+                </tr>
+                <tr>
+                    <td><input type="text" name="codigo2" required></td>
+                    <td><input type="text" name="producto2" required></td>
+                    <td><input type="number" name="precio2" step="0.01" required></td>
+                    <td><input type="number" name="cantidad2" required></td>
+                    <td><input type="number" name="importe2" readonly></td>
+                </tr>
+                <tr>
+                    <td><input type="text" name="codigo3" required></td>
+                    <td><input type="text" name="producto3" required></td>
+                    <td><input type="number" name="precio3" step="0.01" required></td>
+                    <td><input type="number" name="cantidad3" required></td>
+                    <td><input type="number" name="importe3" readonly></td>
+                </tr>
+                <tr>
+                    <td><input type="text" name="codigo4" required></td>
+                    <td><input type="text" name="producto4" required></td>
+                    <td><input type="number" name="precio4" step="0.01" required></td>
+                    <td><input type="number" name="cantidad4" required></td>
+                    <td><input type="number" name="importe4" readonly></td>
+                </tr>
+                <tr>
+                    <td><input type="text" name="codigo5" required></td>
+                    <td><input type="text" name="producto5" required></td>
+                    <td><input type="number" name="precio5" step="0.01" required></td>
+                    <td><input type="number" name="cantidad5" required></td>
+                    <td><input type="number" name="importe5" readonly></td>
+                </tr>
+                <tr>
+                    <tr class="total">
+                    <td>Total</td>
+                    <td></td>
+                    <td></td>
+                    <td>Total Bs.</td>
+                    <td><input type="number" id="total" readonly></td>
+                </tr>
+            </table>
+            <br>
+            <a class="btn btn-primary" href="/" style="color: white;">Cancelar</a>
+            <a class="btn btn-success" href="#" style="color: white;">Entregar Pedido</a>
+        </form>
+    </div>
+{% endblock %}
