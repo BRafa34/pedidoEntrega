@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Pedidos{% endblock %}
+{% block title %}Inicio{% endblock %}
 {% block content %}
 
 <div class="container-fluid" style="position: absolute;">
@@ -8,21 +8,22 @@
 
       <!-- Sección de búsqueda -->
       <div class="search-section">
-        <form class="search-form" method="POST" action="/buscar_pedido">
-          <input type="text" name="numero_pedido" class="search-input" placeholder="Ingrese número de pedido (ej: PED001)"
-                 value="{{ request.form.get('numero_pedido','') }}" required>
-          <button type="submit" class="btn btn-primary">Buscar Pedido</button>
+        <form class="search-form" method="POST" action="/buscar_cliente">
+          <input type="text" name="codigo_cliente" class="search-input" placeholder="Ingrese Código Cliente (ej: CLI001)"
+                 value="{{ request.form.get('codigo_cliente','') }}">
+          <button type="submit" class="btn btn-primary">Buscar Cliente</button>
         </form>
       </div>
 
-      {% if pedidos_ejemplo %}
+      {% if clientes_ejemplo %}
       <div style="margin-top:20px; font-size:0.9em; color:#6c757d;">
-        <strong>Pedidos de ejemplo:</strong> PED001, PED002, PED003
+        <strong>Clientes de ejemplo:</strong> CLI001, CLI002, CLI003
       </div>
       {% endif %}
 
       <div class="loading" id="loading" style="display:none;">
-        <p>Buscando pedido...</p>
+        <div class="spinner"></div>
+        <p>Buscando clientes...</p>
       </div>
 
       {% if error %}
@@ -33,28 +34,38 @@
       <div class="alert alert-success"><strong>Éxito:</strong> {{ success }}</div>
       {% endif %}
 
-      {% if pedido %}
+      {% if codigo %}
       <div class="pedido-info">
-        <h5 class="text-center">Pedido No. {{ pedido.numero }}</h5>
+        <h5 class="text-center">Pedido No. {{ codigo.codigo }}</h5>
 
         <table border="1" class="table table-striped mt-3">
           <thead>
-            <tr><th>Cliente:</th><th>{{ pedido.cliente }}</th></tr>
-            <tr><th>Teléfono:</th><th>{{ pedido.telefono }}</th></tr>
-            <tr><th>Fecha:</th><th>{{ pedido.fecha }}</th></tr>
-            <tr><th>Dirección:</th><th>{{ pedido.direccion }}</th></tr>
+            <tr>
+              <th>Cliente:</th><th>{{ codigo.cliente }}</th>
+            </tr>
+            <tr>
+              <th>Teléfono:</th><th>{{ codigo.telefono }}</th>
+            </tr>
+            <tr>
+              <th>Fecha:</th><th>{{ codigo.fecha }}</th>
+            </tr>
+            <tr>
+              <th>Dirección:</th><th>{{ codigo.direccion }}</th>
+            </tr>
           </thead>
         </table>
 
         <div class="form-section mt-4">
-          <form method="POST" action="/actualizar_pedido" id="pedidoForm">
-            <input type="hidden" name="numero_pedido" value="{{ pedido.numero }}">
+          <form method="POST" action="/grabar_pedido" id="pedidoForm">
+            <input type="hidden" name="numero_pedido" value="{{ codigo.numero }}">
             <table class="table table-bordered">
               <thead>
-                <tr><th>#</th><th>Artículo</th><th>Cantidad</th><th>Precio Unitario</th><th>Subtotal</th></tr>
+                <tr>
+                  <th>#</th><th>Artículo</th><th>Cantidad</th><th>Precio Unitario</th><th>Subtotal</th>
+                </tr>
               </thead>
               <tbody>
-                {% for articulo in pedido.articulos %}
+                {% for articulo in codigo.articulos %}
                 <tr>
                   <td>{{ loop.index }}</td>
                   <td><input type="text" name="nombre_{{ articulo.id }}" class="form-control" value="{{ articulo.nombre }}"></td>
@@ -73,7 +84,7 @@
             </div>
 
             <div class="form-actions mt-4">
-              <button type="submit" class="btn btn-success">Entregar Pedido</button>
+              <button type="submit" class="btn btn-success">Grabar Pedido</button>
               <a href="/" class="btn btn-danger">Cancelar</a>
             </div>
           </form>
@@ -84,6 +95,10 @@
 </div>
 
 <script>
+  document.querySelector('form').addEventListener('submit', () => {
+    document.getElementById('loading').style.display = 'block';
+  });
+
   function calcularSubtotal(id) {
     const cantidad = document.querySelector(input[name='cantidad_${id}']).value;
     const precio = document.querySelector(input[name='precio_${id}']).value;
