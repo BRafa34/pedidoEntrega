@@ -5,7 +5,7 @@
 {% block content %}
     <h1>Dashboard</h1>
     <p>Bienvenido a tu dashboard, {{ session['username'] }}!</p>
-
+    
     {% if session['role'] == 'admin' %}
         <h2>Panel de Administración</h2>
         <ul>
