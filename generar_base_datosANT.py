@@ -46,6 +46,20 @@ TABLES['Usuarios'] = ('''
       PRIMARY KEY (`usuario`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')
 
+TABLES['Cliente'] = ('''
+      CREATE TABLE `cliente` (
+      `id` INT(11) NOT NULL AUTO_INCREMENT,
+      `nombre` varchar(40) NOT NULL,
+      `correo` VARCHAR(80) NOT NULL,
+      `local` VARCHAR(50) NOT NULL,
+      `direc` VARCHAR(100) NOT NULL,
+      `telf` VARCHAR(20) NOT NULL,
+      `latitud` DECIMAL(10,6) DEFAULT NULL,
+      `longitud` DECIMAL(10,6) DEFAULT NULL,
+      `ciudad` VARCHAR(50) NOT NULL,
+      PRIMARY KEY (`id`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')
+
 for tabla_nombre in TABLES:
       tabla_sql = TABLES[tabla_nombre]
       try:
@@ -99,6 +113,20 @@ cursor.execute('select * from brandonbozo$pedidoEntrega.productos')
 print(' -------------  Productoss:  -------------')
 for producto in cursor.fetchall():
     print(producto[0],' ',producto[1],' ',producto[2] )
+#insertar Clientes
+cliente_sql = 'INSERT INTO cliente (nombre, correo, local, direc, telf, latitud, longitud, ciudad) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
+
+clientes = [
+    ("Juan Perez", "juanperez@gmail.com", "Tienda Juanito", "Av. America ", "76543210", -16.4897, -68.1193, "Cochabamba"),
+    ("Jorge Valencia", "jorgevalencia@gmail.com", "Tienda DonJorge", "Calle Potosi", "70123456", -17.7833, -63.1821, "Cochabamba")
+]
+
+cursor.executemany(cliente_sql, clientes)
+
+cursor.execute('SELECT * FROM brandonbozo$pedidoEntrega.cliente')
+print(' -------------  Clientes:  -------------')
+for cli in cursor.fetchall():
+    print(cli)
 
 
 # commitando si no hay nada que tenga efecto
