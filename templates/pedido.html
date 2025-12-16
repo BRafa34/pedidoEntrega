@@ -12,8 +12,8 @@
             <div class="search-section">
 
                 <form class="search-form" method="POST" action="/buscar_pedido">
-                    <input type="text" name="numero_pedido" class="search-input"
-                           placeholder="Ingrese número de pedido (ej: PED001)"
+                    <input type="text" name="pedido_id" class="search-input"
+                           placeholder="ID del pedido"
                            value="{{ request.form.get('numero_pedido', '') }}" required>
                     <button type="submit" class="btn btn-primary">Buscar Pedido</button>
                 </form>
@@ -46,7 +46,7 @@
             <!-- Información del pedido y formulario -->
             {% if pedido %}
             <div class="pedido-info">
-                <h5><center>Pedido No.:{{ pedido.numero }} </center></h5>
+                <h5><center>Pedido No.:{{ pedido_id }} </center></h5>
 
                 <div>
                     <p>
@@ -76,7 +76,7 @@
             <div class="form-section">
 
                 <form method="POST" action="/actualizar_pedido" id="pedidoForm">
-                    <input type="hidden" name="numero_pedido" value="{{ pedido.numero }}">
+                    <input type="hidden" name="numero_pedido" value="{{ pedido_id }}">
 
                     <table class="articulos-table">
                         <thead>

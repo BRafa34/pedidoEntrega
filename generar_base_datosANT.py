@@ -46,7 +46,7 @@ TABLES['Usuarios'] = ('''
       PRIMARY KEY (`usuario`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')
 
-TABLES['Cliente'] = ('''
+TABLES['Clientes'] = ('''
       CREATE TABLE `cliente` (
       `id` INT(11) NOT NULL AUTO_INCREMENT,
       `nombre` varchar(40) NOT NULL,
@@ -59,6 +59,34 @@ TABLES['Cliente'] = ('''
       `ciudad` VARCHAR(50) NOT NULL,
       PRIMARY KEY (`id`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;''')
+
+TABLES['Pedidos'] = ('''
+    CREATE TABLE `pedidos` (
+        `id` INT AUTO_INCREMENT,
+        `cliente_id` INT NOT NULL,
+        `fecha` DATE NOT NULL,
+        `direccion` VARCHAR(120) NOT NULL,
+        `telefono` VARCHAR(20) NOT NULL,
+        `ciudad` VARCHAR(50) NOT NULL,
+        `estado` VARCHAR(20) NOT NULL,
+        PRIMARY KEY (`id`),
+        FOREIGN KEY (`cliente_id`) REFERENCES cliente(`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+''')
+
+TABLES['PedidoDetalle'] = ('''
+    CREATE TABLE `pedido_detalle` (
+        `id` INT AUTO_INCREMENT,
+        `pedido_id` INT NOT NULL,
+        `producto_id` INT NOT NULL,
+        `cantidad` INT NOT NULL,
+        `precio` DECIMAL(9,2) NOT NULL,
+        PRIMARY KEY (`id`),
+        FOREIGN KEY (`pedido_id`) REFERENCES pedidos(`id`),
+        FOREIGN KEY (`producto_id`) REFERENCES productos(`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+''')
+
 
 for tabla_nombre in TABLES:
       tabla_sql = TABLES[tabla_nombre]
@@ -127,6 +155,34 @@ cursor.execute('SELECT * FROM brandonbozo$pedidoEntrega.cliente')
 print(' -------------  Clientes:  -------------')
 for cli in cursor.fetchall():
     print(cli)
+
+#insertar Pedidos
+pedido_sql = 'INSERT INTO pedidos (cliente_id, fecha, direccion, telefono, ciudad, estado) VALUES ( %s, %s, %s, %s, %s, %s)'
+
+pedido = (
+    1,  # Juan Perez (cliente_id = 1)
+    "2024-06-01",
+    "Av. Los Sauces #345",
+    "77777777",
+    "Cochabamba",
+    "Pendiente"
+)
+
+cursor.execute(pedido_sql, pedido)
+pedido_id = cursor.lastrowid
+
+#insertar Pedidosdetalle
+detalle_sql = 'INSERT INTO pedido_detalle (pedido_id, producto_id, cantidad, precio) VALUES (%s, %s, %s, %s)'
+
+detalles = [
+    (pedido_id, 1, 2, 1200.00),
+    (pedido_id, 2, 5, 25.00),
+    (pedido_id, 3, 3, 80.00),
+    (pedido_id, 4, 2, 300.00),
+    (pedido_id, 5, 1, 150.00)
+]
+
+cursor.executemany(detalle_sql, detalles)
 
 
 # commitando si no hay nada que tenga efecto

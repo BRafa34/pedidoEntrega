@@ -36,9 +36,46 @@ class Productos(db.Model):
     stock_minimo = db.Column(db.Integer, nullable=False)
     existencia = db.Column(db.Integer, nullable=False)
 
+class Cliente(db.Model):
+    __tablename__ = 'cliente'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(40), nullable=False)
+    correo = db.Column(db.String(80), nullable=False)
+    local = db.Column(db.String(50), nullable=False)
+    direc = db.Column(db.String(100), nullable=False)
+    telf = db.Column(db.String(20), nullable=False)
+    latitud = db.Column(db.DECIMAL(10,6))
+    longitud = db.Column(db.DECIMAL(10,6))
+    ciudad = db.Column(db.String(50), nullable=False)
+
+
+class Pedido(db.Model):
+    __tablename__ = 'pedidos'
+    id = db.Column(db.Integer, primary_key=True)
+    cliente_id = db.Column(db.Integer, db.ForeignKey('cliente.id'))
+    fecha = db.Column(db.Date, nullable=False)
+    direccion = db.Column(db.String(120), nullable=False)
+    telefono = db.Column(db.String(20), nullable=False)
+    ciudad = db.Column(db.String(50), nullable=False)
+    estado = db.Column(db.String(20), nullable=False)
+
+    cliente = db.relationship('Cliente')
+
+
+class PedidoDetalle(db.Model):
+    __tablename__ = 'pedido_detalle'
+    id = db.Column(db.Integer, primary_key=True)
+    pedido_id = db.Column(db.Integer, db.ForeignKey('pedidos.id'))
+    producto_id = db.Column(db.Integer, db.ForeignKey('productos.id'))
+    cantidad = db.Column(db.Integer, nullable=False)
+    precio = db.Column(db.DECIMAL(9,2), nullable=False)
+
+    producto = db.relationship('Productos')
+
+
 
 # Base de datos simulada de clientes
-CLIENTES_DB = {
+'''CLIENTES_DB = {
     "CLI001": {
         "codigo": "CLI001",
         "cliente": "Juan Pérez",
@@ -84,11 +121,11 @@ CLIENTES_DB = {
             {"id": 5, "nombre": "Cable Lightning", "cantidad": 1, "precio": 20.00}
         ]
     }
-}
+}'''
 
 
 # Base de datos simulada de pedidos
-PEDIDOS_DB = {
+'''PEDIDOS_DB = {
     "PED001": {
         "numero": "PED001",
         "cliente": "Juan Pérez",
@@ -137,9 +174,7 @@ PEDIDOS_DB = {
             {"id": 5, "nombre": "Cable Lightning", "cantidad": 1, "precio": 20.00}
         ]
     }
-}
-
-
+}'''
 
 
 def login_required(f):
@@ -313,33 +348,60 @@ def pedido():
 
 @app.route('/buscar_pedido', methods=['GET', 'POST'])
 def buscar_pedido():
-    if 'username' not in session or session['role'] != 'driver':
-        return redirect(url_for('login'))
-
-
     pedido = None
+    pedido_id = None
     error = None
     success = None
     total = 0
 
     if request.method == 'POST':
-        numero_pedido = request.form.get('numero_pedido', '').strip().upper()
+        pedido_id_input = request.form.get('pedido_id', '').strip()
 
-        if not numero_pedido:
-            error = "Por favor, ingrese un número de pedido."
-        elif numero_pedido in PEDIDOS_DB:
-            pedido = PEDIDOS_DB[numero_pedido]
-            # Calcular total
-            total = sum(art['cantidad'] * art['precio'] for art in pedido['articulos'])
+        if not pedido_id_input.isdigit():
+            error = "Ingrese un ID de pedido válido."
         else:
-            error = f"El pedido '{numero_pedido}' no existe en el sistema."
+            pedido_db = Pedido.query.get(int(pedido_id_input))
 
-    return render_template('pedido.html',
-                                pedido=pedido,
-                                error=error,
-                                success=success,
-                                total=total,
-                                pedidos_ejemplo=True)
+            if not pedido_db:
+                error = f"No existe el pedido con ID {pedido_id_input}"
+            else:
+                pedido_id = pedido_db.id  # 👈 ESTO ES CLAVE
+
+                pedido = {
+                    "cliente": pedido_db.cliente.nombre,
+                    "telefono": pedido_db.cliente.telf,
+                    "fecha": pedido_db.fecha,
+                    "direccion": pedido_db.cliente.direc,
+                    "ciudad": pedido_db.cliente.ciudad,
+                    "estado": pedido_db.estado,
+                    "articulos": []
+                }
+
+                total = 0
+                for det in pedido_db.detalles:
+                    subtotal = det.cantidad * det.precio
+                    total += subtotal
+
+                    pedido["articulos"].append({
+                        "id": det.id,
+                        "nombre": det.producto.articulo,
+                        "cantidad": det.cantidad,
+                        "precio": det.precio
+                    })
+
+                success = "Pedido encontrado correctamente."
+
+    return render_template(
+        "pedido.html",
+        pedido=pedido,
+        pedido_id=pedido_id,  # 👈 ESTO FALTABA
+        total=total,
+        error=error,
+        success=success,
+        pedidos_ejemplo=False
+    )
+
+
 
 @app.route('/actualizar_pedido', methods=['POST'])
 def actualizar_pedido():
@@ -399,31 +461,115 @@ def buscar_cliente():
     productos = Productos.query.all()
 
     if request.method == 'POST':
-        codigo_cliente = request.form.get('codigo_cliente', '').strip().upper()
+        codigo_cliente = request.form.get('codigo_cliente', '').strip()
 
-        if not codigo_cliente:
-            error = "Por favor, ingrese un código de cliente."
-        elif codigo_cliente in CLIENTES_DB:
-            codigo = CLIENTES_DB[codigo_cliente]
-            # Calcular total
-            ####total = sum(art['cantidad'] * art['precio'] for art in pedido['articulos'])
+        # Validar que sea numérico
+        if not codigo_cliente.isdigit():
+            error = "Ingrese un ID de cliente válido."
         else:
-            error = f"El cliente '{codigo_cliente}' no existe en el sistema."
+            cliente = Cliente.query.get(int(codigo_cliente))
 
-    return render_template('preventa.html',
-                                codigo=codigo,
-                                error=error,
-                                success=success,
-                                total=total,
-                                clientes_ejemplo=True,
-                                productos = productos)
+            if not cliente:
+                error = f"El cliente con ID {codigo_cliente} no existe."
+            else:
+                codigo = {
+                    "codigo": cliente.id,
+                    "cliente": cliente.nombre,
+                    "telefono": cliente.telf,
+                    "fecha": "",  # puedes poner date.today() si quieres
+                    "direccion": cliente.direc,
+                    "ciudad": cliente.ciudad,
+                    "estado": "Activo"
+                }
+
+                success = "Cliente encontrado correctamente."
+
+    return render_template(
+        'preventa.html',
+        codigo=codigo,
+        error=error,
+        success=success,
+        total=total,
+        clientes_ejemplo=False,
+        productos=productos
+    )
+
 
 
 @app.route('/grabar_pedido', methods=['POST'])
 def grabar_pedido():
-    ##numero_pedido = request.form.get('numero_pedido')
-    pass
-    #return "Grabando Pedido ..."
+    try:
+        conn = mysql.connector.connect(
+            host='brandonbozo.mysql.pythonanywhere-services.com',
+            user='brandonbozo',
+            password='mysqlroot',
+            database='brandonbozo$pedidoEntrega'
+        )
+        cursor = conn.cursor(dictionary=True)
+
+        # Cliente
+        cliente_id = request.form.get('cliente_id')
+        fecha = datetime.now().strftime('%Y-%m-%d')
+        estado = 'Pendiente'
+
+        # Crear pedido
+        cursor.execute("""
+            INSERT INTO pedido (cliente_id, fecha, estado, total)
+            VALUES (%s, %s, %s, 0)
+        """, (cliente_id, fecha, estado))
+
+        pedido_id = cursor.lastrowid  # ID REAL DEL PEDIDO
+
+        total_pedido = 0
+
+        # Obtener productos
+        cursor.execute("SELECT id, precio_venta FROM productos")
+        productos = cursor.fetchall()
+
+        for prod in productos:
+            prod_id = prod['id']
+
+            cantidad = request.form.get(f'cantidad_{prod_id}')
+            precio = request.form.get(f'precio_{prod_id}')
+
+            if cantidad and int(cantidad) > 0:
+                cantidad = int(cantidad)
+                precio = float(precio)
+                subtotal = cantidad * precio
+                total_pedido += subtotal
+
+                # Insertar detalle
+                cursor.execute("""
+                    INSERT INTO pedido_detalle
+                    (pedido_id, producto_id, cantidad, precio, subtotal)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (pedido_id, prod_id, cantidad, precio, subtotal))
+
+        # Actualizar total
+        cursor.execute("""
+            UPDATE pedido
+            SET total = %s
+            WHERE id = %s
+        """, (total_pedido, pedido_id))
+
+        conn.commit()
+
+        return redirect(url_for(
+            'preventa',
+            success=f'Pedido #{pedido_id} guardado correctamente'
+        ))
+
+    except Exception as e:
+        conn.rollback()
+        return render_template(
+            'preventa.html',
+            error=f'Error al grabar pedido: {str(e)}'
+        )
+
+    finally:
+        cursor.close()
+        conn.close()
+
 
 @app.route('/usuarios')
 def index():
